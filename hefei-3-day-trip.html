@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>合肥 2 人 3 天游 | 经典景点与地道美食路线</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --ink: #17211c;
+      --muted: #64716b;
+      --paper: #fbfaf5;
+      --card: #ffffff;
+      --line: #d9dfd8;
+      --green: #2f6f4f;
+      --red: #b7472a;
+      --gold: #b98932;
+      --blue: #285c7d;
+      --shadow: 0 18px 55px rgba(22, 33, 28, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .lang-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 1000;
+      border: 1px solid rgba(255,255,255,.42);
+      background: rgba(23, 33, 28, .78);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22);
+      backdrop-filter: blur(8px);
+    }
+
+    .lang-toggle:hover { background: rgba(23, 33, 28, .92); }
+
+    .hero {
+      min-height: 88vh;
+      display: grid;
+      align-items: end;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background:
+        linear-gradient(180deg, rgba(8, 18, 17, .12), rgba(8, 18, 17, .8)),
+        url("https://commons.wikimedia.org/wiki/Special:Redirect/file/HeFei_Baogong_Park.jpg?width=1900") center / cover;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 120px;
+      background: linear-gradient(180deg, transparent, var(--paper));
+    }
+
+    .hero-inner {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 84px 0 128px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.38);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(8px);
+      border-radius: 999px;
+      font-size: 14px;
+    }
+
+    h1 {
+      margin: 22px 0 18px;
+      max-width: 860px;
+      font-size: clamp(44px, 8vw, 92px);
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(17px, 2vw, 22px);
+      color: rgba(255,255,255,.88);
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      width: min(1120px, calc(100% - 36px));
+      margin: -70px auto 56px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .quick div, .panel, .day, .dish, .note, .source-card, .map-panel {
+      background: rgba(255,255,255,.93);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+    }
+
+    .quick div { padding: 18px; }
+    .quick strong { display: block; font-size: 24px; }
+    .quick span { color: var(--muted); font-size: 14px; }
+
+    main {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto 70px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 54px 0 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .section-title p {
+      max-width: 520px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .panel {
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    .route-map {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .route-map article {
+      border-left: 5px solid var(--green);
+      padding: 16px 16px 18px;
+      background: #f5f8f4;
+      border-radius: 8px;
+    }
+
+    .route-map article:nth-child(2) { border-color: var(--blue); background: #f3f7fa; }
+    .route-map article:nth-child(3) { border-color: var(--red); background: #fbf4f1; }
+    .route-map h3 {
+      width: fit-content;
+      margin: 0 0 10px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .route-map article:nth-child(1) h3 { background: var(--green); }
+    .route-map article:nth-child(2) h3 { background: var(--blue); }
+    .route-map article:nth-child(3) h3 { background: var(--red); }
+    .route-map p { margin: 0; color: var(--muted); }
+
+    .map-panel {
+      overflow: hidden;
+      margin: 22px 0;
+    }
+
+    #trip-map {
+      height: 560px;
+      width: 100%;
+      background: #e8eee8;
+    }
+
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: center;
+      padding: 15px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .leaflet-popup-content {
+      margin: 12px 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+
+    .leaflet-popup-content strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+
+    .route-marker {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 2px solid #fff;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+    }
+
+    .day {
+      overflow: hidden;
+      margin: 22px 0;
+    }
+
+    .day-head {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      min-height: 238px;
+      background: #eef3ee;
+    }
+
+    .day-copy {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .tag {
+      width: fit-content;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .day h3 {
+      margin: 0 0 10px;
+      font-size: clamp(25px, 3vw, 36px);
+      line-height: 1.15;
+    }
+
+    .day-copy h3 {
+      width: fit-content;
+      max-width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: #fff;
+    }
+
+    #day1 .day-copy h3 { background: var(--green); }
+    #day2 .day-copy h3 { background: var(--blue); }
+    #day3 .day-copy h3 { background: var(--red); }
+
+    .day-copy p { margin: 0; color: var(--muted); max-width: 650px; }
+
+    .photo {
+      min-height: 238px;
+      background-size: cover;
+      background-position: center;
+      filter: saturate(.95);
+    }
+
+    .p1 { background-image: url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Bao_He_Park_59541-Hefei_(49222299351).jpg?width=900"); }
+    .p2 { background-image: url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Chao_Lake.jpg?width=900"); }
+    .p3 { background-image: url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Hefei_Swan_Lake_2012.jpg?width=900"); }
+
+    .timeline {
+      padding: 22px 28px 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .stop {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 18px;
+      align-items: start;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .stop:last-child { border-bottom: 0; padding-bottom: 0; }
+    .time { font-weight: 800; color: var(--red); }
+    .stop h4 { margin: 0 0 4px; font-size: 18px; }
+    .stop p { margin: 0; color: var(--muted); }
+    .stop b { color: var(--ink); }
+
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .dish {
+      padding: 18px;
+      box-shadow: none;
+      min-height: 170px;
+    }
+
+    .dish small {
+      color: var(--red);
+      font-weight: 800;
+    }
+
+    .dish h3 { margin: 8px 0 8px; font-size: 20px; }
+    .dish p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .street-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .street-card {
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 34px rgba(22, 33, 28, .08);
+    }
+
+    .street-card img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      background: #e8eee8;
+    }
+
+    .street-card div { padding: 14px; }
+    .street-card small { color: var(--red); font-weight: 800; }
+    .street-card h3 { margin: 6px 0 6px; font-size: 19px; }
+    .street-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .keyword-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .keyword-row span {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #eef3ee;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .tips {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+
+    .note {
+      padding: 22px;
+      box-shadow: none;
+    }
+
+    .note h3 { margin: 0 0 10px; font-size: 20px; }
+    .note ul { margin: 0; padding-left: 20px; color: var(--muted); }
+
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .source-card {
+      box-shadow: none;
+      padding: 16px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .source-card a {
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    footer {
+      padding: 28px 18px 44px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 840px) {
+      .quick, .route-map, .food-grid, .street-grid, .tips, .sources { grid-template-columns: 1fr; }
+      .day-head { grid-template-columns: 1fr; }
+      .photo { min-height: 210px; order: -1; }
+      .section-title { align-items: start; flex-direction: column; }
+      .stop { grid-template-columns: 1fr; gap: 4px; }
+      .hero { min-height: 82vh; }
+      .hero-inner { padding-bottom: 112px; }
+      #trip-map { height: 440px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="lang-toggle" type="button" id="lang-toggle" aria-label="Switch language">English</button>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">2 人同行 · 3 天 2 晚 · 经典景点 + 地道美食</div>
+      <h1>合肥慢游三日计划</h1>
+      <p>把老城人文、博物馆群、巢湖岸线、市内公园和合肥夜宵一次串起来。节奏不赶，适合第一次到合肥的两个人。</p>
+    </div>
+  </header>
+
+  <section class="quick" aria-label="行程概览">
+    <div><strong>3 天</strong><span>全程合肥市内轻松转悠</span></div>
+    <div><strong>2 人</strong><span>以地铁、打车、短途客运组合</span></div>
+    <div><strong>12+ 小吃</strong><span>补充街边摊、夜市和小红书关键词</span></div>
+    <div><strong>住老城</strong><span>淮河路/包公园附近最省折返</span></div>
+  </section>
+
+  <main>
+    <section>
+      <div class="section-title">
+        <h2>路线逻辑</h2>
+        <p>第一天从老城地标开始，第二天看博物馆与湖岸，第三天安排市内西线和轻松商圈。全程不出市区，交通更稳。</p>
+      </div>
+      <div class="panel route-map">
+        <article>
+          <h3>D1 老城文化线</h3>
+          <p>包公园、李鸿章故居、逍遥津、淮河路步行街，晚上吃庐州菜或宁国路小龙虾。</p>
+        </article>
+        <article>
+          <h3>D2 博物馆与湖岸</h3>
+          <p>安徽博物院、合柴1972、渡江战役纪念馆、巢湖岸线，夜里去罍街补齐小吃。</p>
+        </article>
+        <article>
+          <h3>D3 市内西线慢游</h3>
+          <p>大蜀山、合肥植物园、天鹅湖、1912 街区，白天看绿地湖景，晚上吃得更从容。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>地图标注</h2>
+        <p>按 3 天市内线路把景点、美食街和公园商圈标在地图上。彩色线只表示游览顺序，实际交通以当天导航为准。</p>
+      </div>
+      <div class="map-panel">
+        <div id="trip-map" aria-label="合肥三日游路线地图"></div>
+        <div class="map-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#2f6f4f"></span>D1 老城文化线</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#285c7d"></span>D2 博物馆与湖岸</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#b7472a"></span>D3 市内西线慢游</span>
+          <span class="legend-item">提示：点击编号查看停留建议</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="day" id="day1">
+      <div class="day-head">
+        <div class="day-copy">
+          <span class="tag">Day 1 · 老合肥入门</span>
+          <h3>包公园 → 李鸿章故居 → 逍遥津 → 淮河路</h3>
+          <p>这一天都在老城区，步行和短途打车就能串起来。核心是包公文化、晚清淮军历史和三国逍遥津，晚上把第一顿合肥味吃扎实。</p>
+        </div>
+        <div class="photo p1" role="img" aria-label="中式园林与古建筑"></div>
+      </div>
+      <div class="timeline">
+        <div class="stop">
+          <div class="time">09:30</div>
+          <div>
+            <h4>包公园</h4>
+            <p>看包公祠、包公墓、清风阁和浮庄。建议留 <b>1.5-2 小时</b>，拍照点在浮庄水面倒影和清风阁外侧。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">12:00</div>
+          <div>
+            <h4>午餐：庐州烤鸭 / 鸭油烧饼</h4>
+            <p>从包公园到淮河路一带吃午饭。两人点半只烤鸭、鸭油烧饼、素菜或汤，控制分量，下午不犯困。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">13:30</div>
+          <div>
+            <h4>李鸿章故居</h4>
+            <p>位于淮河路步行街中段，适合了解晚清、洋务运动与淮军。馆体不大，<b>60-90 分钟</b>比较舒服。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">15:30</div>
+          <div>
+            <h4>逍遥津公园 + 淮河路步行街</h4>
+            <p>逍遥津适合散步看三国文化符号。傍晚回淮河路，买点饮品、小吃，等夜景亮起来。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">18:30</div>
+          <div>
+            <h4>晚餐：李鸿章大杂烩 / 包公鱼，或宁国路小龙虾</h4>
+            <p>想吃正餐选徽菜馆；想要热闹夜宵氛围，打车去宁国路。小龙虾建议点一份主味型，再配凉菜和主食。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="day" id="day2">
+      <div class="day-head">
+        <div class="day-copy">
+          <span class="tag">Day 2 · 城市气质线</span>
+          <h3>安徽博物院 → 合柴1972 → 巢湖岸线 → 罍街</h3>
+          <p>第二天从省级博物馆进入安徽历史，再去工业更新街区和巢湖边。晚上安排罍街，选择多，容错率高。</p>
+        </div>
+        <div class="photo p2" role="img" aria-label="湖岸与城市绿地"></div>
+      </div>
+      <div class="timeline">
+        <div class="stop">
+          <div class="time">09:30</div>
+          <div>
+            <h4>安徽博物院新馆</h4>
+            <p>重点看安徽文明、徽州文化、青铜器和文房相关展陈。热门时段建议提前预约，留 <b>2-3 小时</b>。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">12:30</div>
+          <div>
+            <h4>午餐：政务区简餐或本帮小炒</h4>
+            <p>下午要移动到合柴和滨湖，午餐以轻便为主。可点合肥小炒、蒸菜、汤面，避免排队太久。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">14:00</div>
+          <div>
+            <h4>合柴1972</h4>
+            <p>老监狱和柴油机厂改造的文创街区，适合咖啡、展览、拍照。若遇到展览闭馆，就把时间挪给湖边。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">16:00</div>
+          <div>
+            <h4>渡江战役纪念馆 + 巢湖岸线</h4>
+            <p>纪念馆与湖岸距离近，晴天可沿湖散步到傍晚。若天气差，改去安徽名人馆或室内商场休整。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">19:00</div>
+          <div>
+            <h4>晚餐：罍街</h4>
+            <p>罍街是合肥代表性美食街区，适合两人边走边吃。推荐组合：庐州鸭油烧饼、臭鳜鱼小份、毛豆腐、藕圆，再补一杯米酒或茶饮。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="day" id="day3">
+      <div class="day-head">
+        <div class="day-copy">
+          <span class="tag">Day 3 · 市内慢收尾</span>
+          <h3>大蜀山 → 合肥植物园 → 天鹅湖 → 1912 街区</h3>
+          <p>第三天不再跑远郊，把时间留给市内绿地、湖景和轻松吃喝。适合前两天走累之后放慢节奏，也方便晚上赶高铁或飞机。</p>
+        </div>
+        <div class="photo p3" role="img" aria-label="合肥天鹅湖城市景观"></div>
+      </div>
+      <div class="timeline">
+        <div class="stop">
+          <div class="time">09:30</div>
+          <div>
+            <h4>大蜀山森林公园</h4>
+            <p>上午空气好，适合走一段登山步道或在山脚绿道散步。想轻松一点就不登顶，把体力留给下午。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">11:30</div>
+          <div>
+            <h4>午餐：蜀山区本帮小炒 / 面馆</h4>
+            <p>选择靠近大蜀山或植物园的餐馆，点合肥小炒、蒸菜、面点即可，第三天保持轻松。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">13:00</div>
+          <div>
+            <h4>合肥植物园</h4>
+            <p>适合慢走、拍花草和湖边景色。春秋季体验最好，夏天建议避开正午暴晒。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">15:30</div>
+          <div>
+            <h4>天鹅湖公园</h4>
+            <p>看政务区城市天际线和湖岸步道，傍晚光线更舒服。若天气不好，可改去附近商场休整。</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="time">18:30</div>
+          <div>
+            <h4>晚餐：1912 街区 / 之心城</h4>
+            <p>最后一晚选 1912 街区吃正餐或小酒馆，也可以去之心城吃商场餐。赶车的话从政务区、蜀山区打车更可控。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>街边美食深挖</h2>
+        <p>结合小红书常见种草关键词和公开攻略，把“能边走边吃、适合两个人分着尝”的小吃集中到市内路线里。</p>
+      </div>
+      <div class="food-grid">
+        <article class="dish">
+          <small>老城午餐</small>
+          <h3>庐州烤鸭</h3>
+          <p>外皮香、鸭肉配饼吃。两人点半只更稳，再配鸭油烧饼。</p>
+        </article>
+        <article class="dish">
+          <small>徽菜正餐</small>
+          <h3>李鸿章大杂烩</h3>
+          <p>合肥名菜，适合第一晚正餐。口味厚重，建议搭配清爽蔬菜。</p>
+        </article>
+        <article class="dish">
+          <small>夜宵氛围</small>
+          <h3>合肥小龙虾</h3>
+          <p>宁国路和罍街都适合。两人点一份主菜，加凉菜和主食即可。</p>
+        </article>
+        <article class="dish">
+          <small>市内小吃</small>
+          <h3>鸭油烧饼</h3>
+          <p>适合当早餐或加餐，老城、罍街和部分小吃店都容易找到。</p>
+        </article>
+      </div>
+      <div class="keyword-row" aria-label="小红书检索关键词">
+        <span>小红书搜：合肥街边美食</span>
+        <span>合肥官亭路小吃</span>
+        <span>合肥宁国路小龙虾</span>
+        <span>合肥罍街必吃</span>
+        <span>合肥淮河路老字号</span>
+        <span>合肥苍蝇馆子</span>
+      </div>
+      <div class="street-grid">
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=700&q=80" alt="热汤面小吃">
+          <div><small>早餐/夜宵</small><h3>牛肉汤粉面</h3><p>适合放在淮河路或官亭路周边，清早和夜里都实用。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=700&q=80" alt="烤鸭和烧饼">
+          <div><small>老合肥</small><h3>庐州烤鸭</h3><p>两人分半只，再配鸭油烧饼，是老城最稳的一口。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=700&q=80" alt="油炸小吃">
+          <div><small>边走边吃</small><h3>鸭油烧饼</h3><p>更适合作加餐，淮河路、罍街、小吃集合区都可找。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=700&q=80" alt="炸鸡和炸串">
+          <div><small>夜市感</small><h3>炸串炸物</h3><p>官亭路、大学周边和商圈小吃摊常见，适合少量多样。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1628294896516-344152572ee8?auto=format&fit=crop&w=700&q=80" alt="小龙虾">
+          <div><small>宁国路</small><h3>合肥小龙虾</h3><p>晚上安排最合适，点一份主味型，加凉菜和主食即可。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=700&q=80" alt="烤串">
+          <div><small>夜宵</small><h3>烤串</h3><p>适合放在宁国路、罍街或1912后半场，不要和正餐点重。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=700&q=80" alt="豆腐小吃">
+          <div><small>徽味</small><h3>毛豆腐</h3><p>外酥内软，接受发酵香气的话很值得试，小份就够。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=700&q=80" alt="油炸点心">
+          <div><small>罍街</small><h3>藕圆/圆子</h3><p>适合当桌边小吃，和臭鳜鱼、毛豆腐这类徽菜小份搭配。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1617692855027-33b14f061079?auto=format&fit=crop&w=700&q=80" alt="锅贴煎饺">
+          <div><small>路边主食</small><h3>锅贴煎饺</h3><p>早餐或下午加餐都合适，适合在老城区找排队小店。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1600628422019-6c6e6205f3f5?auto=format&fit=crop&w=700&q=80" alt="豆花甜品">
+          <div><small>解辣</small><h3>豆花/甜品</h3><p>吃完小龙虾、烤串后用来收尾，降低夜宵负担。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1606851682837-019baf2c2f69?auto=format&fit=crop&w=700&q=80" alt="街边米粉">
+          <div><small>快手午餐</small><h3>米线米粉</h3><p>第三天市内慢游可用作简单午餐，节省排队时间。</p></div>
+        </article>
+        <article class="street-card">
+          <img src="https://images.unsplash.com/photo-1593504049359-74330189a345?auto=format&fit=crop&w=700&q=80" alt="小吃拼盘">
+          <div><small>小红书路线</small><h3>少量多摊</h3><p>官亭路、罍街、淮河路别在一家吃饱，适合两人分食。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>实用提示</h2>
+        <p>把美食分散到每天晚上和路过街区，不为了打卡专门横穿城市。</p>
+      </div>
+      <div class="tips">
+        <div class="note">
+          <h3>住宿与交通</h3>
+          <ul>
+            <li>住宿优先选淮河路步行街、包公园、三孝口一带，D1 最省时间。</li>
+            <li>D2 到政务区、滨湖距离较长，地铁 + 打车组合比全程公交更舒服。</li>
+            <li>D3 全程在市内，若晚上离开合肥，建议把行李寄存在酒店、车站或商场。</li>
+            <li>博物馆、纪念馆类地点通常需要关注预约、开放日和闭馆时间。</li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3>街边吃法</h3>
+          <ul>
+            <li>官亭路适合下午到晚上扫小吃，别安排在刚吃完正餐后。</li>
+            <li>宁国路更适合夜宵小龙虾，提前想好口味，避免点太多。</li>
+            <li>罍街选择密集，适合把徽菜小份、小吃、甜品放在同一晚。</li>
+            <li>小红书搜店名后，重点看近 30 天笔记里的排队、营业和避雷信息。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>参考来源</h2>
+        <p>路线结合公开攻略、景区信息与美食街区资料整理，出行前建议再次确认开放时间。</p>
+      </div>
+      <div class="sources">
+        <div class="source-card">
+          <a href="https://m.meet99.com/trips/view/80.html" target="_blank" rel="noreferrer">久久旅游攻略：合肥三日游</a>
+          <p>用于参考合肥 3 日经典线路：包公园、李鸿章故居、逍遥津、巢湖等。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://m.hf.bendibao.com/news/72238.shtm" target="_blank" rel="noreferrer">合肥本地宝：路线与特色美食</a>
+          <p>用于补充合肥特色美食与市内小吃选择。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://ah.people.com.cn/n2/2022/0126/c402120-35113888.html" target="_blank" rel="noreferrer">人民网安徽：皖美好味道与罍街</a>
+          <p>用于确认罍街作为安徽特色美食体验街区，以及合肥代表菜品清单。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://www.ahgm.org.cn/" target="_blank" rel="noreferrer">安徽省地质博物馆官网</a>
+          <p>用于参考政务区博物馆群的预约、交通和场馆信息。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://www.loongwander.com/zh-CN/article/li-hongzhangs-former-residence" target="_blank" rel="noreferrer">李鸿章故居介绍</a>
+          <p>用于参考李鸿章故居位置、历史背景、4A 景区与展陈内容。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://commons.wikimedia.org/wiki/File:HeFei_Baogong_Park.jpg" target="_blank" rel="noreferrer">页面图片：Wikimedia Commons</a>
+          <p>页面使用包公园、巢湖、天鹅湖等实景图片，来自 Wikimedia Commons 开放许可图片。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://www.xiaohongshu.com/search_result?keyword=%E5%90%88%E8%82%A5%20%E8%A1%97%E8%BE%B9%E7%BE%8E%E9%A3%9F" target="_blank" rel="noreferrer">小红书搜索：合肥街边美食</a>
+          <p>用于继续深挖近期笔记、排队情况、营业状态和避雷信息。</p>
+        </div>
+        <div class="source-card">
+          <a href="https://unsplash.com/" target="_blank" rel="noreferrer">街边美食图片：Unsplash</a>
+          <p>美食图鉴使用开放图库图片作氛围参考，具体菜品以现场店铺为准。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    生成日期：2026-04-26 · 建议出发前再次核对景区开放时间、预约要求与餐厅营业状态
+  </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const copy = {
+      zh: {
+        title: "合肥 2 人 3 天游 | 经典景点与地道美食路线",
+        button: "English",
+        values: [
+          [".eyebrow", "2 人同行 · 3 天 2 晚 · 经典景点 + 地道美食"],
+          ["h1", "合肥慢游三日计划"],
+          [".hero p", "把老城人文、博物馆群、巢湖岸线、市内公园和合肥夜宵一次串起来。节奏不赶，适合第一次到合肥的两个人。"],
+          [".quick div:nth-child(1) strong", "3 天"],
+          [".quick div:nth-child(1) span", "全程合肥市内轻松转悠"],
+          [".quick div:nth-child(2) strong", "2 人"],
+          [".quick div:nth-child(2) span", "以地铁、打车、短途客运组合"],
+          [".quick div:nth-child(3) strong", "12+ 小吃"],
+          [".quick div:nth-child(3) span", "补充街边摊、夜市和小红书关键词"],
+          [".quick div:nth-child(4) strong", "住老城"],
+          [".quick div:nth-child(4) span", "淮河路/包公园附近最省折返"],
+          ["main > section:nth-child(1) h2", "路线逻辑"],
+          ["main > section:nth-child(1) .section-title p", "第一天从老城地标开始，第二天看博物馆与湖岸，第三天安排市内西线和轻松商圈。全程不出市区，交通更稳。"],
+          [".route-map article:nth-child(1) h3", "D1 老城文化线"],
+          [".route-map article:nth-child(1) p", "包公园、李鸿章故居、逍遥津、淮河路步行街，晚上吃庐州菜或宁国路小龙虾。"],
+          [".route-map article:nth-child(2) h3", "D2 博物馆与湖岸"],
+          [".route-map article:nth-child(2) p", "安徽博物院、合柴1972、渡江战役纪念馆、巢湖岸线，夜里去罍街补齐小吃。"],
+          [".route-map article:nth-child(3) h3", "D3 市内西线慢游"],
+          [".route-map article:nth-child(3) p", "大蜀山、合肥植物园、天鹅湖、1912 街区，白天看绿地湖景，晚上吃得更从容。"],
+          ["main > section:nth-child(2) h2", "地图标注"],
+          ["main > section:nth-child(2) .section-title p", "按 3 天市内线路把景点、美食街和公园商圈标在地图上。彩色线只表示游览顺序，实际交通以当天导航为准。"],
+          [".map-legend .legend-item:nth-child(1)", "<span class=\"legend-dot\" style=\"background:#2f6f4f\"></span>D1 老城文化线"],
+          [".map-legend .legend-item:nth-child(2)", "<span class=\"legend-dot\" style=\"background:#285c7d\"></span>D2 博物馆与湖岸"],
+          [".map-legend .legend-item:nth-child(3)", "<span class=\"legend-dot\" style=\"background:#b7472a\"></span>D3 市内西线慢游"],
+          [".map-legend .legend-item:nth-child(4)", "提示：点击编号查看停留建议"],
+          ["#day1 .tag", "Day 1 · 老合肥入门"],
+          ["#day1 .day-copy h3", "包公园 → 李鸿章故居 → 逍遥津 → 淮河路"],
+          ["#day1 .day-copy p", "这一天都在老城区，步行和短途打车就能串起来。核心是包公文化、晚清淮军历史和三国逍遥津，晚上把第一顿合肥味吃扎实。"],
+          ["#day2 .tag", "Day 2 · 城市气质线"],
+          ["#day2 .day-copy h3", "安徽博物院 → 合柴1972 → 巢湖岸线 → 罍街"],
+          ["#day2 .day-copy p", "第二天从省级博物馆进入安徽历史，再去工业更新街区和巢湖边。晚上安排罍街，选择多，容错率高。"],
+          ["#day3 .tag", "Day 3 · 市内慢收尾"],
+          ["#day3 .day-copy h3", "大蜀山 → 合肥植物园 → 天鹅湖 → 1912 街区"],
+          ["#day3 .day-copy p", "第三天不再跑远郊，把时间留给市内绿地、湖景和轻松吃喝。适合前两天走累之后放慢节奏，也方便晚上赶高铁或飞机。"],
+          ["#day1 .stop:nth-child(1) h4", "包公园"],
+          ["#day1 .stop:nth-child(1) p", "看包公祠、包公墓、清风阁和浮庄。建议留 <b>1.5-2 小时</b>，拍照点在浮庄水面倒影和清风阁外侧。"],
+          ["#day1 .stop:nth-child(2) h4", "午餐：庐州烤鸭 / 鸭油烧饼"],
+          ["#day1 .stop:nth-child(2) p", "从包公园到淮河路一带吃午饭。两人点半只烤鸭、鸭油烧饼、素菜或汤，控制分量，下午不犯困。"],
+          ["#day1 .stop:nth-child(3) h4", "李鸿章故居"],
+          ["#day1 .stop:nth-child(3) p", "位于淮河路步行街中段，适合了解晚清、洋务运动与淮军。馆体不大，<b>60-90 分钟</b>比较舒服。"],
+          ["#day1 .stop:nth-child(4) h4", "逍遥津公园 + 淮河路步行街"],
+          ["#day1 .stop:nth-child(4) p", "逍遥津适合散步看三国文化符号。傍晚回淮河路，买点饮品、小吃，等夜景亮起来。"],
+          ["#day1 .stop:nth-child(5) h4", "晚餐：李鸿章大杂烩 / 包公鱼，或宁国路小龙虾"],
+          ["#day1 .stop:nth-child(5) p", "想吃正餐选徽菜馆；想要热闹夜宵氛围，打车去宁国路。小龙虾建议点一份主味型，再配凉菜和主食。"],
+          ["#day2 .stop:nth-child(1) h4", "安徽博物院新馆"],
+          ["#day2 .stop:nth-child(1) p", "重点看安徽文明、徽州文化、青铜器和文房相关展陈。热门时段建议提前预约，留 <b>2-3 小时</b>。"],
+          ["#day2 .stop:nth-child(2) h4", "午餐：政务区简餐或本帮小炒"],
+          ["#day2 .stop:nth-child(2) p", "下午要移动到合柴和滨湖，午餐以轻便为主。可点合肥小炒、蒸菜、汤面，避免排队太久。"],
+          ["#day2 .stop:nth-child(3) h4", "合柴1972"],
+          ["#day2 .stop:nth-child(3) p", "老监狱和柴油机厂改造的文创街区，适合咖啡、展览、拍照。若遇到展览闭馆，就把时间挪给湖边。"],
+          ["#day2 .stop:nth-child(4) h4", "渡江战役纪念馆 + 巢湖岸线"],
+          ["#day2 .stop:nth-child(4) p", "纪念馆与湖岸距离近，晴天可沿湖散步到傍晚。若天气差，改去安徽名人馆或室内商场休整。"],
+          ["#day2 .stop:nth-child(5) h4", "晚餐：罍街"],
+          ["#day2 .stop:nth-child(5) p", "罍街是合肥代表性美食街区，适合两人边走边吃。推荐组合：庐州鸭油烧饼、臭鳜鱼小份、毛豆腐、藕圆，再补一杯米酒或茶饮。"],
+          ["#day3 .stop:nth-child(1) h4", "大蜀山森林公园"],
+          ["#day3 .stop:nth-child(1) p", "上午空气好，适合走一段登山步道或在山脚绿道散步。想轻松一点就不登顶，把体力留给下午。"],
+          ["#day3 .stop:nth-child(2) h4", "午餐：蜀山区本帮小炒 / 面馆"],
+          ["#day3 .stop:nth-child(2) p", "选择靠近大蜀山或植物园的餐馆，点合肥小炒、蒸菜、面点即可，第三天保持轻松。"],
+          ["#day3 .stop:nth-child(3) h4", "合肥植物园"],
+          ["#day3 .stop:nth-child(3) p", "适合慢走、拍花草和湖边景色。春秋季体验最好，夏天建议避开正午暴晒。"],
+          ["#day3 .stop:nth-child(4) h4", "天鹅湖公园"],
+          ["#day3 .stop:nth-child(4) p", "看政务区城市天际线和湖岸步道，傍晚光线更舒服。若天气不好，可改去附近商场休整。"],
+          ["#day3 .stop:nth-child(5) h4", "晚餐：1912 街区 / 之心城"],
+          ["#day3 .stop:nth-child(5) p", "最后一晚选 1912 街区吃正餐或小酒馆，也可以去之心城吃商场餐。赶车的话从政务区、蜀山区打车更可控。"],
+          ["main > section:nth-child(6) h2", "街边美食深挖"],
+          ["main > section:nth-child(6) .section-title p", "结合小红书常见种草关键词和公开攻略，把“能边走边吃、适合两个人分着尝”的小吃集中到市内路线里。"],
+          [".dish:nth-child(1) small", "老城午餐"],
+          [".dish:nth-child(1) h3", "庐州烤鸭"],
+          [".dish:nth-child(1) p", "外皮香、鸭肉配饼吃。两人点半只更稳，再配鸭油烧饼。"],
+          [".dish:nth-child(2) small", "徽菜正餐"],
+          [".dish:nth-child(2) h3", "李鸿章大杂烩"],
+          [".dish:nth-child(2) p", "合肥名菜，适合第一晚正餐。口味厚重，建议搭配清爽蔬菜。"],
+          [".dish:nth-child(3) small", "夜宵氛围"],
+          [".dish:nth-child(3) h3", "合肥小龙虾"],
+          [".dish:nth-child(3) p", "宁国路和罍街都适合。两人点一份主菜，加凉菜和主食即可。"],
+          [".dish:nth-child(4) small", "市内小吃"],
+          [".dish:nth-child(4) h3", "鸭油烧饼"],
+          [".dish:nth-child(4) p", "适合当早餐或加餐，老城、罍街和部分小吃店都容易找到。"],
+          [".keyword-row span:nth-child(1)", "小红书搜：合肥街边美食"],
+          [".keyword-row span:nth-child(2)", "合肥官亭路小吃"],
+          [".keyword-row span:nth-child(3)", "合肥宁国路小龙虾"],
+          [".keyword-row span:nth-child(4)", "合肥罍街必吃"],
+          [".keyword-row span:nth-child(5)", "合肥淮河路老字号"],
+          [".keyword-row span:nth-child(6)", "合肥苍蝇馆子"],
+          [".street-card:nth-child(1) small", "早餐/夜宵"],
+          [".street-card:nth-child(1) h3", "牛肉汤粉面"],
+          [".street-card:nth-child(1) p", "适合放在淮河路或官亭路周边，清早和夜里都实用。"],
+          [".street-card:nth-child(2) small", "老合肥"],
+          [".street-card:nth-child(2) h3", "庐州烤鸭"],
+          [".street-card:nth-child(2) p", "两人分半只，再配鸭油烧饼，是老城最稳的一口。"],
+          [".street-card:nth-child(3) small", "边走边吃"],
+          [".street-card:nth-child(3) h3", "鸭油烧饼"],
+          [".street-card:nth-child(3) p", "更适合作加餐，淮河路、罍街、小吃集合区都可找。"],
+          [".street-card:nth-child(4) small", "夜市感"],
+          [".street-card:nth-child(4) h3", "炸串炸物"],
+          [".street-card:nth-child(4) p", "官亭路、大学周边和商圈小吃摊常见，适合少量多样。"],
+          [".street-card:nth-child(5) small", "宁国路"],
+          [".street-card:nth-child(5) h3", "合肥小龙虾"],
+          [".street-card:nth-child(5) p", "晚上安排最合适，点一份主味型，加凉菜和主食即可。"],
+          [".street-card:nth-child(6) small", "夜宵"],
+          [".street-card:nth-child(6) h3", "烤串"],
+          [".street-card:nth-child(6) p", "适合放在宁国路、罍街或1912后半场，不要和正餐点重。"],
+          [".street-card:nth-child(7) small", "徽味"],
+          [".street-card:nth-child(7) h3", "毛豆腐"],
+          [".street-card:nth-child(7) p", "外酥内软，接受发酵香气的话很值得试，小份就够。"],
+          [".street-card:nth-child(8) small", "罍街"],
+          [".street-card:nth-child(8) h3", "藕圆/圆子"],
+          [".street-card:nth-child(8) p", "适合当桌边小吃，和臭鳜鱼、毛豆腐这类徽菜小份搭配。"],
+          [".street-card:nth-child(9) small", "路边主食"],
+          [".street-card:nth-child(9) h3", "锅贴煎饺"],
+          [".street-card:nth-child(9) p", "早餐或下午加餐都合适，适合在老城区找排队小店。"],
+          [".street-card:nth-child(10) small", "解辣"],
+          [".street-card:nth-child(10) h3", "豆花/甜品"],
+          [".street-card:nth-child(10) p", "吃完小龙虾、烤串后用来收尾，降低夜宵负担。"],
+          [".street-card:nth-child(11) small", "快手午餐"],
+          [".street-card:nth-child(11) h3", "米线米粉"],
+          [".street-card:nth-child(11) p", "第三天市内慢游可用作简单午餐，节省排队时间。"],
+          [".street-card:nth-child(12) small", "小红书路线"],
+          [".street-card:nth-child(12) h3", "少量多摊"],
+          [".street-card:nth-child(12) p", "官亭路、罍街、淮河路别在一家吃饱，适合两人分食。"],
+          ["main > section:nth-child(7) h2", "实用提示"],
+          ["main > section:nth-child(7) .section-title p", "把美食分散到每天晚上和路过街区，不为了打卡专门横穿城市。"],
+          [".note:nth-child(1) h3", "住宿与交通"],
+          [".note:nth-child(1) li:nth-child(1)", "住宿优先选淮河路步行街、包公园、三孝口一带，D1 最省时间。"],
+          [".note:nth-child(1) li:nth-child(2)", "D2 到政务区、滨湖距离较长，地铁 + 打车组合比全程公交更舒服。"],
+          [".note:nth-child(1) li:nth-child(3)", "D3 全程在市内，若晚上离开合肥，建议把行李寄存在酒店、车站或商场。"],
+          [".note:nth-child(1) li:nth-child(4)", "博物馆、纪念馆类地点通常需要关注预约、开放日和闭馆时间。"],
+          [".note:nth-child(2) h3", "街边吃法"],
+          [".note:nth-child(2) li:nth-child(1)", "官亭路适合下午到晚上扫小吃，别安排在刚吃完正餐后。"],
+          [".note:nth-child(2) li:nth-child(2)", "宁国路更适合夜宵小龙虾，提前想好口味，避免点太多。"],
+          [".note:nth-child(2) li:nth-child(3)", "罍街选择密集，适合把徽菜小份、小吃、甜品放在同一晚。"],
+          [".note:nth-child(2) li:nth-child(4)", "小红书搜店名后，重点看近 30 天笔记里的排队、营业和避雷信息。"],
+          ["main > section:nth-child(8) h2", "参考来源"],
+          ["main > section:nth-child(8) .section-title p", "路线结合公开攻略、景区信息与美食街区资料整理，出行前建议再次确认开放时间。"],
+          [".source-card:nth-child(1) a", "久久旅游攻略：合肥三日游"],
+          [".source-card:nth-child(1) p", "用于参考合肥 3 日经典线路：包公园、李鸿章故居、逍遥津、巢湖等。"],
+          [".source-card:nth-child(2) a", "合肥本地宝：路线与特色美食"],
+          [".source-card:nth-child(2) p", "用于补充合肥特色美食与市内小吃选择。"],
+          [".source-card:nth-child(3) a", "人民网安徽：皖美好味道与罍街"],
+          [".source-card:nth-child(3) p", "用于确认罍街作为安徽特色美食体验街区，以及合肥代表菜品清单。"],
+          [".source-card:nth-child(4) a", "安徽省地质博物馆官网"],
+          [".source-card:nth-child(4) p", "用于参考政务区博物馆群的预约、交通和场馆信息。"],
+          [".source-card:nth-child(5) a", "李鸿章故居介绍"],
+          [".source-card:nth-child(5) p", "用于参考李鸿章故居位置、历史背景、4A 景区与展陈内容。"],
+          [".source-card:nth-child(6) a", "页面图片：Wikimedia Commons"],
+          [".source-card:nth-child(6) p", "页面使用包公园、巢湖、天鹅湖等实景图片，来自 Wikimedia Commons 开放许可图片。"],
+          [".source-card:nth-child(7) a", "小红书搜索：合肥街边美食"],
+          [".source-card:nth-child(7) p", "用于继续深挖近期笔记、排队情况、营业状态和避雷信息。"],
+          [".source-card:nth-child(8) a", "街边美食图片：Unsplash"],
+          [".source-card:nth-child(8) p", "美食图鉴使用开放图库图片作氛围参考，具体菜品以现场店铺为准。"],
+          ["footer", "生成日期：2026-04-26 · 建议出发前再次核对景区开放时间、预约要求与餐厅营业状态"]
+        ],
+        routes: [
+          {
+            name: "D1 老城文化线",
+            color: "#2f6f4f",
+            stops: [
+              ["包公园", 31.8582, 117.2946, "上午游览包公祠、清风阁、浮庄，建议 1.5-2 小时。"],
+              ["淮河路步行街", 31.8670, 117.2876, "午餐与城市老街散步，适合吃庐州烤鸭和鸭油烧饼。"],
+              ["李鸿章故居", 31.8664, 117.2857, "看晚清、淮军与洋务运动相关展陈，建议 60-90 分钟。"],
+              ["逍遥津公园", 31.8735, 117.2929, "傍晚散步，看三国文化地标，之后回步行街看夜景。"],
+              ["宁国路龙虾街", 31.8392, 117.2948, "晚餐或夜宵点小龙虾、凉菜和主食，两人不用点太多。"]
+            ]
+          },
+          {
+            name: "D2 博物馆与湖岸",
+            color: "#285c7d",
+            stops: [
+              ["安徽博物院新馆", 31.8207, 117.2166, "上午看安徽文明、徽州文化和重点馆藏，热门时段建议预约。"],
+              ["合柴1972", 31.8226, 117.2522, "下午咖啡、展览、工业风街区拍照，适合作为节奏缓冲。"],
+              ["渡江战役纪念馆", 31.7460, 117.2992, "靠近巢湖岸线，适合和湖边散步一起安排。"],
+              ["巢湖岸线", 31.7430, 117.3099, "晴天傍晚沿湖走一段，天气差可改室内场馆。"],
+              ["罍街", 31.8387, 117.3097, "晚餐集中吃合肥小吃、徽菜小份和夜宵。"]
+            ]
+          },
+          {
+            name: "D3 市内西线慢游",
+            color: "#b7472a",
+            stops: [
+              ["大蜀山森林公园", 31.8516, 117.1808, "上午散步或轻登山，第三天从市内绿地开始。"],
+              ["合肥植物园", 31.8720, 117.2042, "午后慢走看花草和湖边景色，适合放松。"],
+              ["天鹅湖公园", 31.8170, 117.2270, "傍晚看湖岸和政务区城市天际线。"],
+              ["1912 街区", 31.8500, 117.2250, "晚餐、小酒馆或咖啡收尾，选择比远郊更灵活。"]
+            ]
+          }
+        ]
+      },
+      en: {
+        title: "Hefei 3-Day Trip for Two | Classic Sights and Local Food",
+        button: "中文",
+        values: [
+          [".eyebrow", "For two · 3 days / 2 nights · Classic sights + local food"],
+          ["h1", "A Slow 3-Day Hefei Itinerary"],
+          [".hero p", "A relaxed city route covering old-town history, museums, Chaohu lakeside views, urban parks, and Hefei night food."],
+          [".quick div:nth-child(1) strong", "3 Days"],
+          [".quick div:nth-child(1) span", "Easy city-only itinerary"],
+          [".quick div:nth-child(2) strong", "2 People"],
+          [".quick div:nth-child(2) span", "Metro, taxi, and short transfers"],
+          [".quick div:nth-child(3) strong", "12+ Snacks"],
+          [".quick div:nth-child(3) span", "Street bites, night food, and Xiaohongshu search terms"],
+          [".quick div:nth-child(4) strong", "Stay Old Town"],
+          [".quick div:nth-child(4) span", "Huaihe Road / Bao Park area reduces backtracking"],
+          ["main > section:nth-child(1) h2", "Route Logic"],
+          ["main > section:nth-child(1) .section-title p", "Start with old-town landmarks, move to museums and the lakeside on day two, then finish with western-city parks and an easy dining district."],
+          [".route-map article:nth-child(1) h3", "D1 Old-Town Culture"],
+          [".route-map article:nth-child(1) p", "Bao Park, Li Hongzhang Former Residence, Xiaoyaojin, Huaihe Road, and Ningguo Road crayfish at night."],
+          [".route-map article:nth-child(2) h3", "D2 Museums and Lakeside"],
+          [".route-map article:nth-child(2) p", "Anhui Museum, Hechai 1972, the Crossing-the-Yangtze Campaign Memorial, Chaohu lakeside, and Lei Street."],
+          [".route-map article:nth-child(3) h3", "D3 West-City Slow Day"],
+          [".route-map article:nth-child(3) p", "Dashushan, Hefei Botanical Garden, Swan Lake, and 1912 Block for a relaxed final evening."],
+          ["main > section:nth-child(2) h2", "Map Route"],
+          ["main > section:nth-child(2) .section-title p", "The map marks the city sights, food streets, parks, and dining districts for all three days. Colored lines show sequence only."],
+          [".map-legend .legend-item:nth-child(1)", "<span class=\"legend-dot\" style=\"background:#2f6f4f\"></span>D1 Old-Town Culture"],
+          [".map-legend .legend-item:nth-child(2)", "<span class=\"legend-dot\" style=\"background:#285c7d\"></span>D2 Museums and Lakeside"],
+          [".map-legend .legend-item:nth-child(3)", "<span class=\"legend-dot\" style=\"background:#b7472a\"></span>D3 West-City Slow Day"],
+          [".map-legend .legend-item:nth-child(4)", "Tip: click a numbered marker for stop notes"],
+          ["#day1 .tag", "Day 1 · Old Hefei"],
+          ["#day1 .day-copy h3", "Bao Park → Li Hongzhang Former Residence → Xiaoyaojin → Huaihe Road"],
+          ["#day1 .day-copy p", "Stay in the old town today. The route is compact, easy by foot and short taxi rides, and gives you a solid first taste of Hefei."],
+          ["#day2 .tag", "Day 2 · Urban Character"],
+          ["#day2 .day-copy h3", "Anhui Museum → Hechai 1972 → Chaohu Lakeside → Lei Street"],
+          ["#day2 .day-copy p", "Start with Anhui history, then move through a creative district and the lakeside before ending with a flexible food-street dinner."],
+          ["#day3 .tag", "Day 3 · Easy City Finish"],
+          ["#day3 .day-copy h3", "Dashushan → Hefei Botanical Garden → Swan Lake → 1912 Block"],
+          ["#day3 .day-copy p", "No suburb transfer today. Keep the final day light with greenery, lake views, and an easy dinner district."],
+          ["#day1 .stop:nth-child(1) h4", "Bao Park"],
+          ["#day1 .stop:nth-child(1) p", "Visit Bao Gong Temple, Bao Gong Tomb, Qingfeng Pavilion, and Fuzhuang. Allow <b>1.5-2 hours</b>."],
+          ["#day1 .stop:nth-child(2) h4", "Lunch: Luzhou Roast Duck / Duck-Fat Biscuits"],
+          ["#day1 .stop:nth-child(2) p", "Eat near Bao Park or Huaihe Road. Half a roast duck, biscuits, vegetables, or soup works well for two."],
+          ["#day1 .stop:nth-child(3) h4", "Li Hongzhang Former Residence"],
+          ["#day1 .stop:nth-child(3) p", "Located on Huaihe Road, this compact museum covers late-Qing history, the Self-Strengthening Movement, and the Huai Army. Allow <b>60-90 minutes</b>."],
+          ["#day1 .stop:nth-child(4) h4", "Xiaoyaojin Park + Huaihe Road"],
+          ["#day1 .stop:nth-child(4) p", "A relaxed walk with Three Kingdoms references, then return to Huaihe Road for snacks and evening lights."],
+          ["#day1 .stop:nth-child(5) h4", "Dinner: Li Hongzhang Hotchpotch / Bao Gong Fish, or Ningguo Road Crayfish"],
+          ["#day1 .stop:nth-child(5) p", "Choose a Hui-style restaurant for dinner, or head to Ningguo Road for a livelier crayfish night."],
+          ["#day2 .stop:nth-child(1) h4", "Anhui Museum New Hall"],
+          ["#day2 .stop:nth-child(1) p", "Focus on Anhui civilization, Huizhou culture, bronzes, and stationery collections. Book ahead in busy periods and allow <b>2-3 hours</b>."],
+          ["#day2 .stop:nth-child(2) h4", "Lunch: Government District Casual Meal"],
+          ["#day2 .stop:nth-child(2) p", "Keep lunch light before moving to Hechai and Binhu. Hefei stir-fries, steamed dishes, or noodles are practical."],
+          ["#day2 .stop:nth-child(3) h4", "Hechai 1972"],
+          ["#day2 .stop:nth-child(3) p", "A creative district converted from old industrial buildings, good for coffee, exhibitions, and photos."],
+          ["#day2 .stop:nth-child(4) h4", "Crossing-the-Yangtze Campaign Memorial + Chaohu Lakeside"],
+          ["#day2 .stop:nth-child(4) p", "The memorial is close to the lakeside. Walk by the water toward evening if the weather is good."],
+          ["#day2 .stop:nth-child(5) h4", "Dinner: Lei Street"],
+          ["#day2 .stop:nth-child(5) p", "Lei Street is a convenient food district. Try duck-fat biscuits, small Hui-style dishes, tofu snacks, lotus-root balls, and a drink."],
+          ["#day3 .stop:nth-child(1) h4", "Dashushan Forest Park"],
+          ["#day3 .stop:nth-child(1) p", "Start with fresh air, a short trail, or an easy walk around the foothill greenway."],
+          ["#day3 .stop:nth-child(2) h4", "Lunch: Shushan Local Stir-Fries / Noodles"],
+          ["#day3 .stop:nth-child(2) p", "Choose a restaurant near Dashushan or the botanical garden and keep the meal simple."],
+          ["#day3 .stop:nth-child(3) h4", "Hefei Botanical Garden"],
+          ["#day3 .stop:nth-child(3) p", "A slow stop for plants, flowers, and lakeside paths. Spring and autumn are the most comfortable seasons."],
+          ["#day3 .stop:nth-child(4) h4", "Swan Lake Park"],
+          ["#day3 .stop:nth-child(4) p", "Walk the lakeside and view the government district skyline. If the weather is poor, switch to a nearby mall."],
+          ["#day3 .stop:nth-child(5) h4", "Dinner: 1912 Block / Heart City"],
+          ["#day3 .stop:nth-child(5) p", "Finish with dinner, a cafe, or a small bar in 1912 Block. Heart City is a practical mall-dining fallback."],
+          ["main > section:nth-child(6) h2", "Street Food Deep Dive"],
+          ["main > section:nth-child(6) .section-title p", "Built around Xiaohongshu-style search terms and public food guides, focusing on snacks that two people can share while walking."],
+          [".dish:nth-child(1) small", "Old-Town Lunch"],
+          [".dish:nth-child(1) h3", "Luzhou Roast Duck"],
+          [".dish:nth-child(1) p", "Fragrant skin and duck meat wrapped with thin pancakes. Half a duck is usually enough for two."],
+          [".dish:nth-child(2) small", "Hui-Style Dinner"],
+          [".dish:nth-child(2) h3", "Li Hongzhang Hotchpotch"],
+          [".dish:nth-child(2) p", "A well-known Hefei dish with a rich flavor. Pair it with a lighter vegetable dish."],
+          [".dish:nth-child(3) small", "Night Food"],
+          [".dish:nth-child(3) h3", "Hefei Crayfish"],
+          [".dish:nth-child(3) p", "Ningguo Road and Lei Street both work. Order one main flavor plus sides and staple food."],
+          [".dish:nth-child(4) small", "City Snack"],
+          [".dish:nth-child(4) h3", "Duck-Fat Biscuits"],
+          [".dish:nth-child(4) p", "Good for breakfast or a snack, and easy to find around the old town and food streets."],
+          [".keyword-row span:nth-child(1)", "XHS: Hefei street food"],
+          [".keyword-row span:nth-child(2)", "Hefei Guanting Road snacks"],
+          [".keyword-row span:nth-child(3)", "Hefei Ningguo Road crayfish"],
+          [".keyword-row span:nth-child(4)", "Hefei Lei Street must-eats"],
+          [".keyword-row span:nth-child(5)", "Hefei Huaihe Road old shops"],
+          [".keyword-row span:nth-child(6)", "Hefei hole-in-the-wall food"],
+          [".street-card:nth-child(1) small", "Breakfast / Late Night"],
+          [".street-card:nth-child(1) h3", "Beef Soup Noodles"],
+          [".street-card:nth-child(1) p", "Works well around Huaihe Road or Guanting Road, especially early or late."],
+          [".street-card:nth-child(2) small", "Old Hefei"],
+          [".street-card:nth-child(2) h3", "Luzhou Roast Duck"],
+          [".street-card:nth-child(2) p", "Share half a duck with duck-fat biscuits for a reliable old-town bite."],
+          [".street-card:nth-child(3) small", "Walk-and-Eat"],
+          [".street-card:nth-child(3) h3", "Duck-Fat Biscuits"],
+          [".street-card:nth-child(3) p", "Better as a snack than a full meal; look around Huaihe Road, Lei Street, and snack streets."],
+          [".street-card:nth-child(4) small", "Night Market"],
+          [".street-card:nth-child(4) h3", "Fried Skewers"],
+          [".street-card:nth-child(4) p", "Common near Guanting Road, university areas, and shopping districts. Order small portions."],
+          [".street-card:nth-child(5) small", "Ningguo Road"],
+          [".street-card:nth-child(5) h3", "Hefei Crayfish"],
+          [".street-card:nth-child(5) p", "Best at night. Pick one main flavor, then add cold dishes and staple food."],
+          [".street-card:nth-child(6) small", "Late Night"],
+          [".street-card:nth-child(6) h3", "Grilled Skewers"],
+          [".street-card:nth-child(6) p", "Good after Ningguo Road, Lei Street, or 1912 Block. Do not double up after a heavy dinner."],
+          [".street-card:nth-child(7) small", "Hui Flavor"],
+          [".street-card:nth-child(7) h3", "Mao Tofu"],
+          [".street-card:nth-child(7) p", "Crisp outside and soft inside. Try a small portion if you like fermented flavors."],
+          [".street-card:nth-child(8) small", "Lei Street"],
+          [".street-card:nth-child(8) h3", "Lotus Root Balls"],
+          [".street-card:nth-child(8) p", "A good table snack with small Hui-style dishes such as mao tofu."],
+          [".street-card:nth-child(9) small", "Street Staple"],
+          [".street-card:nth-child(9) h3", "Pan-Fried Dumplings"],
+          [".street-card:nth-child(9) p", "Works for breakfast or an afternoon bite. Look for busy old-town shops."],
+          [".street-card:nth-child(10) small", "After Spicy Food"],
+          [".street-card:nth-child(10) h3", "Tofu Pudding / Dessert"],
+          [".street-card:nth-child(10) p", "A useful finish after crayfish or grilled skewers."],
+          [".street-card:nth-child(11) small", "Quick Lunch"],
+          [".street-card:nth-child(11) h3", "Rice Noodles"],
+          [".street-card:nth-child(11) p", "A practical simple lunch for the slower third day."],
+          [".street-card:nth-child(12) small", "Xiaohongshu Route"],
+          [".street-card:nth-child(12) h3", "Many Small Stops"],
+          [".street-card:nth-child(12) p", "Do not fill up at one shop on Guanting Road, Lei Street, or Huaihe Road. Share everything."],
+          ["main > section:nth-child(7) h2", "Practical Notes"],
+          ["main > section:nth-child(7) .section-title p", "Spread snacks across evenings and streets you already pass; do not cross the city just for one bite."],
+          [".note:nth-child(1) h3", "Stay and Transport"],
+          [".note:nth-child(1) li:nth-child(1)", "Stay near Huaihe Road, Bao Park, or Sanxiaokou to reduce backtracking on day one."],
+          [".note:nth-child(1) li:nth-child(2)", "Day two has longer moves toward the government district and Binhu; metro plus taxi is more comfortable than bus-only travel."],
+          [".note:nth-child(1) li:nth-child(3)", "Day three stays inside the city. If leaving Hefei at night, store luggage at the hotel, station, or a mall."],
+          [".note:nth-child(1) li:nth-child(4)", "Museums and memorials may require reservations and have weekly closing days."],
+          [".note:nth-child(2) h3", "How to Snack"],
+          [".note:nth-child(2) li:nth-child(1)", "Guanting Road is better from late afternoon into evening, not right after a full meal."],
+          [".note:nth-child(2) li:nth-child(2)", "Ningguo Road works best for late-night crayfish; choose the flavor before ordering too much."],
+          [".note:nth-child(2) li:nth-child(3)", "Lei Street is dense enough to combine small Hui-style dishes, snacks, and dessert in one evening."],
+          [".note:nth-child(2) li:nth-child(4)", "After finding a shop on Xiaohongshu, check recent notes for queues, opening hours, and warnings."],
+          ["main > section:nth-child(8) h2", "References"],
+          ["main > section:nth-child(8) .section-title p", "Built from public guides, attraction information, and food-district references. Recheck opening hours before departure."],
+          [".source-card:nth-child(1) a", "Meet99: Hefei 3-Day Route"],
+          [".source-card:nth-child(1) p", "Used for classic Hefei route references including Bao Park, Li Hongzhang Former Residence, Xiaoyaojin, and Chaohu."],
+          [".source-card:nth-child(2) a", "Hefei Bendibao: Route and Food"],
+          [".source-card:nth-child(2) p", "Used to supplement Hefei food and city snack choices."],
+          [".source-card:nth-child(3) a", "People.cn Anhui: Local Food and Lei Street"],
+          [".source-card:nth-child(3) p", "Used to confirm Lei Street as a representative food district and related Hefei dishes."],
+          [".source-card:nth-child(4) a", "Anhui Geological Museum Official Site"],
+          [".source-card:nth-child(4) p", "Used as a reference for museum-area information, reservations, and transport context."],
+          [".source-card:nth-child(5) a", "Li Hongzhang Former Residence Reference"],
+          [".source-card:nth-child(5) p", "Used for location, historical background, and exhibition context."],
+          [".source-card:nth-child(6) a", "Images: Wikimedia Commons"],
+          [".source-card:nth-child(6) p", "The page uses open-license images of Bao Park, Chaohu, and Swan Lake from Wikimedia Commons."],
+          [".source-card:nth-child(7) a", "Xiaohongshu Search: Hefei Street Food"],
+          [".source-card:nth-child(7) p", "Use this to keep checking recent notes, queues, opening status, and warnings."],
+          [".source-card:nth-child(8) a", "Street Food Images: Unsplash"],
+          [".source-card:nth-child(8) p", "Food gallery images are visual references from an open image library; confirm actual dishes on site."],
+          ["footer", "Generated on 2026-04-26 · Recheck attraction hours, reservation rules, and restaurant status before departure"]
+        ],
+        routes: [
+          {
+            name: "D1 Old-Town Culture",
+            color: "#2f6f4f",
+            stops: [
+              ["Bao Park", 31.8582, 117.2946, "Visit Bao Gong Temple, Qingfeng Pavilion, and Fuzhuang. Allow 1.5-2 hours."],
+              ["Huaihe Road Pedestrian Street", 31.8670, 117.2876, "Good for lunch and an old-town walk. Try Luzhou roast duck or duck-fat biscuits."],
+              ["Li Hongzhang Former Residence", 31.8664, 117.2857, "A compact museum on late-Qing history and the Huai Army. Allow 60-90 minutes."],
+              ["Xiaoyaojin Park", 31.8735, 117.2929, "An easy late-afternoon walk with Three Kingdoms references."],
+              ["Ningguo Road Crayfish Street", 31.8392, 117.2948, "A lively dinner or late-night food stop. Order one main crayfish flavor plus sides."]
+            ]
+          },
+          {
+            name: "D2 Museums and Lakeside",
+            color: "#285c7d",
+            stops: [
+              ["Anhui Museum New Hall", 31.8207, 117.2166, "Focus on Anhui civilization, Huizhou culture, and key collections. Book ahead in busy periods."],
+              ["Hechai 1972", 31.8226, 117.2522, "A creative district converted from old industrial buildings, good for coffee and photos."],
+              ["Crossing-the-Yangtze Campaign Memorial", 31.7460, 117.2992, "Close to the Chaohu lakeside and easy to pair with a walk."],
+              ["Chaohu Lakeside", 31.7430, 117.3099, "Walk by the lake toward sunset if the weather is good."],
+              ["Lei Street", 31.8387, 117.3097, "A practical dinner stop for Hefei snacks, small Hui-style dishes, and night food."]
+            ]
+          },
+          {
+            name: "D3 West-City Slow Day",
+            color: "#b7472a",
+            stops: [
+              ["Dashushan Forest Park", 31.8516, 117.1808, "Start with a light walk or short climb in the city’s green west side."],
+              ["Hefei Botanical Garden", 31.8720, 117.2042, "A relaxed afternoon stop for plants, paths, and lakeside views."],
+              ["Swan Lake Park", 31.8170, 117.2270, "Best near golden hour for skyline and lakeside walking."],
+              ["1912 Block", 31.8500, 117.2250, "End with dinner, a cafe, or a small bar without a long transfer."]
+            ]
+          }
+        ]
+      }
+    };
+
+    let currentLang = "zh";
+    let routeLayers = [];
+
+    const map = L.map("trip-map", {
+      scrollWheelZoom: false
+    }).setView([31.78, 117.27], 10);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const bounds = [];
+
+    function renderMap(lang) {
+      routeLayers.forEach((layer) => layer.remove());
+      routeLayers = [];
+      bounds.length = 0;
+
+      copy[lang].routes.forEach((route) => {
+        const latLngs = route.stops.map((stop) => [stop[1], stop[2]]);
+        routeLayers.push(L.polyline(latLngs, {
+          color: route.color,
+          weight: 4,
+          opacity: 0.82,
+          dashArray: null
+        }).addTo(map));
+
+        route.stops.forEach((stop, index) => {
+          const marker = L.divIcon({
+            className: "",
+            html: `<div class="route-marker" style="background:${route.color}">${index + 1}</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+            popupAnchor: [0, -15]
+          });
+
+          routeLayers.push(L.marker([stop[1], stop[2]], { icon: marker })
+            .bindPopup(`<strong>${route.name} · ${stop[0]}</strong>${stop[3]}`)
+            .addTo(map));
+        });
+
+        bounds.push(...latLngs);
+      });
+
+      map.fitBounds(bounds, { padding: [32, 32] });
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      document.title = copy[lang].title;
+      document.getElementById("lang-toggle").textContent = copy[lang].button;
+
+      copy[lang].values.forEach(([selector, value]) => {
+        const element = document.querySelector(selector);
+        if (element) element.innerHTML = value;
+      });
+
+      renderMap(lang);
+    }
+
+    document.getElementById("lang-toggle").addEventListener("click", () => {
+      setLanguage(currentLang === "zh" ? "en" : "zh");
+    });
+
+    setLanguage(currentLang);
+  </script>
+</body>
+</html>
