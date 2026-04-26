@@ -721,11 +721,11 @@
           <div><small>路边主食</small><h3>锅贴煎饺</h3><p>早餐或下午加餐都合适，适合在老城区找排队小店。</p></div>
         </article>
         <article class="street-card">
-          <img src="https://images.unsplash.com/photo-1600628422019-6c6e6205f3f5?auto=format&fit=crop&w=700&q=80" alt="豆花甜品">
+          <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=700&q=80" alt="豆花甜品">
           <div><small>解辣</small><h3>豆花/甜品</h3><p>吃完小龙虾、烤串后用来收尾，降低夜宵负担。</p></div>
         </article>
         <article class="street-card">
-          <img src="https://images.unsplash.com/photo-1606851682837-019baf2c2f69?auto=format&fit=crop&w=700&q=80" alt="街边米粉">
+          <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Noodle_Bowl_for_Lunch_(Unsplash).jpg?width=700" alt="街边米粉">
           <div><small>快手午餐</small><h3>米线米粉</h3><p>第三天市内慢游可用作简单午餐，节省排队时间。</p></div>
         </article>
         <article class="street-card">
@@ -797,7 +797,7 @@
           <p>用于继续深挖近期笔记、排队情况、营业状态和避雷信息。</p>
         </div>
         <div class="source-card">
-          <a href="https://unsplash.com/" target="_blank" rel="noreferrer">街边美食图片：Unsplash</a>
+          <a href="https://unsplash.com/" target="_blank" rel="noreferrer">街边美食图片：Unsplash / Wikimedia Commons</a>
           <p>美食图鉴使用开放图库图片作氛围参考，具体菜品以现场店铺为准。</p>
         </div>
       </div>
@@ -962,7 +962,7 @@
           [".source-card:nth-child(6) p", "页面使用包公园、巢湖、天鹅湖等实景图片，来自 Wikimedia Commons 开放许可图片。"],
           [".source-card:nth-child(7) a", "小红书搜索：合肥街边美食"],
           [".source-card:nth-child(7) p", "用于继续深挖近期笔记、排队情况、营业状态和避雷信息。"],
-          [".source-card:nth-child(8) a", "街边美食图片：Unsplash"],
+          [".source-card:nth-child(8) a", "街边美食图片：Unsplash / Wikimedia Commons"],
           [".source-card:nth-child(8) p", "美食图鉴使用开放图库图片作氛围参考，具体菜品以现场店铺为准。"],
           ["footer", "生成日期：2026-04-26 · 建议出发前再次核对景区开放时间、预约要求与餐厅营业状态"]
         ],
@@ -1153,7 +1153,7 @@
           [".source-card:nth-child(6) p", "The page uses open-license images of Bao Park, Chaohu, and Swan Lake from Wikimedia Commons."],
           [".source-card:nth-child(7) a", "Xiaohongshu Search: Hefei Street Food"],
           [".source-card:nth-child(7) p", "Use this to keep checking recent notes, queues, opening status, and warnings."],
-          [".source-card:nth-child(8) a", "Street Food Images: Unsplash"],
+          [".source-card:nth-child(8) a", "Street Food Images: Unsplash / Wikimedia Commons"],
           [".source-card:nth-child(8) p", "Food gallery images are visual references from an open image library; confirm actual dishes on site."],
           ["footer", "Generated on 2026-04-26 · Recheck attraction hours, reservation rules, and restaurant status before departure"]
         ],
@@ -1194,7 +1194,15 @@
       }
     };
 
-    let currentLang = "zh";
+    function normalizeLang(value) {
+      const lang = String(value || "").toLowerCase();
+      if (lang === "en" || lang === "english") return "en";
+      if (lang === "zh" || lang === "cn" || lang === "zh-cn" || lang === "chinese") return "zh";
+      return "zh";
+    }
+
+    const initialLang = normalizeLang(new URLSearchParams(window.location.search).get("lang"));
+    let currentLang = initialLang;
     let routeLayers = [];
 
     const map = L.map("trip-map", {
@@ -1243,17 +1251,21 @@
     }
 
     function setLanguage(lang) {
-      currentLang = lang;
-      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-      document.title = copy[lang].title;
-      document.getElementById("lang-toggle").textContent = copy[lang].button;
+      currentLang = normalizeLang(lang);
+      document.documentElement.lang = currentLang === "zh" ? "zh-CN" : "en";
+      document.title = copy[currentLang].title;
+      document.getElementById("lang-toggle").textContent = copy[currentLang].button;
 
-      copy[lang].values.forEach(([selector, value]) => {
+      copy[currentLang].values.forEach(([selector, value]) => {
         const element = document.querySelector(selector);
         if (element) element.innerHTML = value;
       });
 
-      renderMap(lang);
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", currentLang);
+      window.history.replaceState({}, "", url);
+
+      renderMap(currentLang);
     }
 
     document.getElementById("lang-toggle").addEventListener("click", () => {
